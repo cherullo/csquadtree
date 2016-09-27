@@ -1,0 +1,13 @@
+Library/*
+Temp/*
+obj/*
+inGameConsole*.txt
+*.sln
+Input_*_gameplay.cfg
+Input_*_menu.cfg
+*.csproj
+*.unityproj
+*.pidb
+*.userprefs
+Relatorio.txt
+output.zip
