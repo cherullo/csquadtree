@@ -3,11 +3,11 @@ using System.Collections;
 
 // public delegate bool DQuadTreeFilter<T> (T p_parm);
 
-public class ComponentQuadTree<T> : ComponentQuadTreeNode<T> where T : Component
+public class ComponentQuadtree<T> : ComponentQuadtreeNode<T> where T : Component
 {
     private SearchData<T> m_searchData = new SearchData<T>();
 
-    public ComponentQuadTree (float p_bottomLeftX, float p_bottomLeftY, float p_topRightX, float p_topRightY) : base (null, p_bottomLeftX, p_bottomLeftY, p_topRightX, p_topRightY)
+    public ComponentQuadtree (float p_bottomLeftX, float p_bottomLeftY, float p_topRightX, float p_topRightY) : base (null, p_bottomLeftX, p_bottomLeftY, p_topRightX, p_topRightY)
     {
         m_root = this;
     }
@@ -20,7 +20,7 @@ public class ComponentQuadTree<T> : ComponentQuadTreeNode<T> where T : Component
         this.Add (data);
     }
 
-    public SearchData<T> ClosestTo(float p_keyx, float p_keyy, DQuadTreeFilter<T> p_filter = null)
+    public SearchData<T> ClosestTo(float p_keyx, float p_keyy, DQuadtreeFilter<T> p_filter = null)
     {
         m_searchData.SetData (p_keyx, p_keyy, p_filter);
 
@@ -32,13 +32,13 @@ public class ComponentQuadTree<T> : ComponentQuadTreeNode<T> where T : Component
     }
 }
 
-public class ComponentQuadTreeNode<T> where T : Component
+public class ComponentQuadtreeNode<T> where T : Component
 {
     private const int K_BUCKET_SIZE = 6;
     private const int K_RIGHT = 1;
     private const int K_TOP = 2;
 
-    protected ComponentQuadTreeNode<T> m_root;
+    protected ComponentQuadtreeNode<T> m_root;
 
     private float m_bottomLeftX;
     private float m_bottomLeftY;
@@ -48,13 +48,13 @@ public class ComponentQuadTreeNode<T> where T : Component
     private float m_centerX;
     private float m_centerY;
 
-    private ComponentQuadTreeNode<T>[] m_nodes;
+    private ComponentQuadtreeNode<T>[] m_nodes;
     private ComponentQuadNodeData<T>[] m_bucket;
     private int m_bucketCount;
 
     bool m_bucketMode = true;
 
-    public ComponentQuadTreeNode (ComponentQuadTreeNode<T> p_root, float p_bottomLeftX, float p_bottomLeftY, float p_topRightX, float p_topRightY)
+    public ComponentQuadtreeNode (ComponentQuadtreeNode<T> p_root, float p_bottomLeftX, float p_bottomLeftY, float p_topRightX, float p_topRightY)
     {
         this.m_root = p_root;
         this.m_bottomLeftX = p_bottomLeftX;
@@ -125,7 +125,7 @@ public class ComponentQuadTreeNode<T> where T : Component
         }
         else // Tree mode
         {
-            ComponentQuadTreeNode<T>[] nodes = m_nodes;
+            ComponentQuadtreeNode<T>[] nodes = m_nodes;
             int quadrant = GetQuadrant (p_searchData.m_keyx, p_searchData.m_keyy);
 
             nodes [quadrant].Search (p_searchData);
@@ -164,12 +164,12 @@ public class ComponentQuadTreeNode<T> where T : Component
 
     private void CreateChildNodes()
     {
-        m_nodes = new ComponentQuadTreeNode<T>[4];
+        m_nodes = new ComponentQuadtreeNode<T>[4];
 
-        m_nodes [0]                 = new ComponentQuadTreeNode<T> (m_root, m_bottomLeftX, m_bottomLeftY, m_centerX, m_centerY);
-        m_nodes [K_RIGHT]           = new ComponentQuadTreeNode<T> (m_root, m_centerX, m_bottomLeftY, m_topRightX, m_centerY);
-        m_nodes [K_TOP]             = new ComponentQuadTreeNode<T> (m_root, m_bottomLeftX, m_centerY, m_centerX, m_topRightY);
-        m_nodes [K_RIGHT + K_TOP]   = new ComponentQuadTreeNode<T> (m_root, m_centerX, m_centerY, m_topRightX, m_topRightY);
+        m_nodes [0]                 = new ComponentQuadtreeNode<T> (m_root, m_bottomLeftX, m_bottomLeftY, m_centerX, m_centerY);
+        m_nodes [K_RIGHT]           = new ComponentQuadtreeNode<T> (m_root, m_centerX, m_bottomLeftY, m_topRightX, m_centerY);
+        m_nodes [K_TOP]             = new ComponentQuadtreeNode<T> (m_root, m_bottomLeftX, m_centerY, m_centerX, m_topRightY);
+        m_nodes [K_RIGHT + K_TOP]   = new ComponentQuadtreeNode<T> (m_root, m_centerX, m_centerY, m_topRightX, m_topRightY);
     }
 
     private int GetQuadrant(float p_keyx, float p_keyy)

@@ -1,13 +1,13 @@
 ﻿using UnityEngine;
 using System.Collections;
 
-public class Quadtree21<T> : QuadTree21Node<T>
+public class Quadtree2_1<T> : QuadTree2_1Node<T>
 {
     private SearchData<T> m_searchData = new SearchData<T>();
 
     private QuadNodeData<T> m_roller;
 
-    public Quadtree21 (float p_bottomLeftX, float p_bottomLeftY, float p_topRightX, float p_topRightY) : base (p_bottomLeftX, p_bottomLeftY, p_topRightX, p_topRightY)
+    public Quadtree2_1 (float p_bottomLeftX, float p_bottomLeftY, float p_topRightX, float p_topRightY) : base (p_bottomLeftX, p_bottomLeftY, p_topRightX, p_topRightY)
     {
     }
     
@@ -28,7 +28,7 @@ public class Quadtree21<T> : QuadTree21Node<T>
         m_roller = this.Add (m_roller);
     }
 
-    public SearchData<T> ClosestTo(float p_keyx, float p_keyy, DQuadTreeFilter<T> p_filter = null)
+    public SearchData<T> ClosestTo(float p_keyx, float p_keyy, DQuadtreeFilter<T> p_filter = null)
     {
         m_searchData.SetData (p_keyx, p_keyy, p_filter);
 
@@ -40,7 +40,7 @@ public class Quadtree21<T> : QuadTree21Node<T>
     }
 }
 
-public class QuadTree21Node<T>
+public class QuadTree2_1Node<T>
 {
     private const int K_BUCKET_SIZE = 4;
     private const int K_RIGHT = 1;
@@ -54,13 +54,13 @@ public class QuadTree21Node<T>
     private float m_centerX;
     private float m_centerY;
 
-    private QuadTree21Node<T>[] m_nodes;
+    private QuadTree2_1Node<T>[] m_nodes;
     private QuadNodeData<T>[] m_bucket;
     private int m_bucketCount;
 
     // bool m_bucketMode = true;
 
-    public QuadTree21Node (float p_bottomLeftX, float p_bottomLeftY, float p_topRightX, float p_topRightY)
+    public QuadTree2_1Node (float p_bottomLeftX, float p_bottomLeftY, float p_topRightX, float p_topRightY)
     {
         this.m_bottomLeftX = p_bottomLeftX;
         this.m_topRightX = p_topRightX;
@@ -207,12 +207,12 @@ public class QuadTree21Node<T>
 
     private void CreateChildNodes()
     {
-        m_nodes = new QuadTree21Node<T>[4];
+        m_nodes = new QuadTree2_1Node<T>[4];
 
-        m_nodes [0]                 = new QuadTree21Node<T> (m_bottomLeftX, m_bottomLeftY, m_centerX, m_centerY);
-        m_nodes [K_RIGHT]           = new QuadTree21Node<T> (m_centerX, m_bottomLeftY, m_topRightX, m_centerY);
-        m_nodes [K_TOP]             = new QuadTree21Node<T> (m_bottomLeftX, m_centerY, m_centerX, m_topRightY);
-        m_nodes [K_RIGHT + K_TOP]   = new QuadTree21Node<T> (m_centerX, m_centerY, m_topRightX, m_topRightY);
+        m_nodes [0]                 = new QuadTree2_1Node<T> (m_bottomLeftX, m_bottomLeftY, m_centerX, m_centerY);
+        m_nodes [K_RIGHT]           = new QuadTree2_1Node<T> (m_centerX, m_bottomLeftY, m_topRightX, m_centerY);
+        m_nodes [K_TOP]             = new QuadTree2_1Node<T> (m_bottomLeftX, m_centerY, m_centerX, m_topRightY);
+        m_nodes [K_RIGHT + K_TOP]   = new QuadTree2_1Node<T> (m_centerX, m_centerY, m_topRightX, m_topRightY);
     }
 
     private int GetQuadrant(float p_keyx, float p_keyy)

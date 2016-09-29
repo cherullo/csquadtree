@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections;
 
-public delegate bool DQuadTreeFilter<T> (T p_parm);
+public delegate bool DQuadtreeFilter<T> (T p_parm);
 
 public class Quadtree<T>
 {
@@ -28,7 +28,7 @@ public class Quadtree<T>
         }
     }
 
-    public SearchData<T> ClosestTo(float p_keyx, float p_keyy, DQuadTreeFilter<T> p_filter = null)
+    public SearchData<T> ClosestTo(float p_keyx, float p_keyy, DQuadtreeFilter<T> p_filter = null)
     {
         m_searchData.SetData (p_keyx, p_keyy, p_filter);
 
@@ -176,13 +176,13 @@ public class SearchData<T>
     public float m_keyy;
     public T m_currentClosest;
     public float m_currentDistance;
-    public DQuadTreeFilter<T> m_filter;
+    public DQuadtreeFilter<T> m_filter;
 
     public SearchData ()
     {
     }
 
-    public void SetData(float m_keyx, float m_keyy, DQuadTreeFilter<T> p_filter = null)
+    public void SetData(float m_keyx, float m_keyy, DQuadtreeFilter<T> p_filter = null)
     {
         this.m_keyx = m_keyx;
         this.m_keyy = m_keyy;

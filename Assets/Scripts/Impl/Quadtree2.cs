@@ -17,7 +17,7 @@ public class Quadtree2<T> : QuadTree2Node<T>
         this.Add (data);
     }
 
-    public SearchData<T> ClosestTo(float p_keyx, float p_keyy, DQuadTreeFilter<T> p_filter = null)
+    public SearchData<T> ClosestTo(float p_keyx, float p_keyy, DQuadtreeFilter<T> p_filter = null)
     {
         m_searchData.SetData (p_keyx, p_keyy, p_filter);
 
