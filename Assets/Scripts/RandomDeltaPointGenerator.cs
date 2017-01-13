@@ -85,6 +85,8 @@ public class RandomDeltaPointGenerator : MonoBehaviour {
 
         for (int i = 0; i < m_tests.Length; i++)
         {
+            ClearCache();
+
             PointTest test = m_tests [i];
 
             test.Clear ();
@@ -121,6 +123,20 @@ public class RandomDeltaPointGenerator : MonoBehaviour {
         }
 
         UnityEngine.Debug.Log (sb.ToString ());
+    }
+
+    private void ClearCache()
+    {
+        int[] buffer = new int[4000000];
+
+        FakeUse(buffer);
+
+        System.GC.Collect (System.GC.MaxGeneration, System.GCCollectionMode.Forced);
+    }
+
+    bool FakeUse(int[] p_buffer)
+    {
+        return false;
     }
 
     private void AppendTest(StringBuilder p_stringBuilder, PointTest p_test)
