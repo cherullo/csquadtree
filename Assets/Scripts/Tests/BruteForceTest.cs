@@ -6,14 +6,24 @@ public class BruteForceTest : PointTest
     private Vector2[] m_points;
     private Component[] m_values;
 
-	public override void FeedItemsAndPositions (Vector2[] p_points, Component[] p_values)
+    public override Component[] RunTest(Vector2[] p_points, Component[] p_values, Vector2[] p_searches)
     {
+        if ((m_results == null) || (m_results.Length != p_searches.Length))
+            m_results = new Component[p_searches.Length];
+
+        Watch.Start ();
+
         m_points = p_points;
         m_values = p_values;
-    }
 
-    public override void Clear ()
-    {
+        for (int i = 0; i < p_points.Length; i++)
+        {
+            m_results [i] = this.SearchPoint (p_points [i].x, p_points [i].y);
+        }
+
+        Watch.Stop ();
+
+        return m_results;
     }
 
     protected override void ClearTree ()
