@@ -1,28 +1,37 @@
 ﻿using UnityEngine;
 using System.Collections;
 
-public class Quadtree2_1<T> : QuadTree2_1Node<T>
+public struct QuadNodeData2<T>
+{
+    public float m_keyx;
+    public float m_keyy;
+    public T m_value;
+
+    public QuadNodeData2 (float p_keyx, float p_keyy, T p_value)
+    {
+        this.m_keyx = p_keyx;
+        this.m_keyy = p_keyy;
+        this.m_value = p_value;
+    }
+}
+
+public class Quadtree2_2<T> : QuadTree2_2Node<T>
 {
     private SearchData<T> m_searchData = new SearchData<T>();
 
-    private QuadNodeData<T> m_roller;
+    private QuadNodeData2<T> m_roller;
 
-    public Quadtree2_1 (float p_bottomLeftX, float p_bottomLeftY, float p_topRightX, float p_topRightY) : base (p_bottomLeftX, p_bottomLeftY, p_topRightX, p_topRightY)
+    public Quadtree2_2 (float p_bottomLeftX, float p_bottomLeftY, float p_topRightX, float p_topRightY) : base (p_bottomLeftX, p_bottomLeftY, p_topRightX, p_topRightY)
     {
     }
 
     public void Add(float p_keyx, float p_keyy, T p_value)
     {
-        if (m_roller == null)
-            m_roller = new QuadNodeData<T> (p_keyx, p_keyy, p_value);
-        else
-        {
-            m_roller.m_keyx = p_keyx;
-            m_roller.m_keyy = p_keyy;
-            m_roller.m_value = p_value;
-        }
+        m_roller.m_keyx = p_keyx;
+        m_roller.m_keyy = p_keyy;
+        m_roller.m_value = p_value;
 
-        m_roller = this.Add (m_roller);
+        this.Add (ref m_roller);
     }
 
     public SearchData<T> ClosestTo(float p_keyx, float p_keyy, DQuadtreeFilter<T> p_filter = null)
@@ -37,7 +46,7 @@ public class Quadtree2_1<T> : QuadTree2_1Node<T>
     }
 }
 
-public class QuadTree2_1Node<T>
+public class QuadTree2_2Node<T>
 {
     private const int K_BUCKET_SIZE = 4;
     private const int K_RIGHT = 1;
@@ -51,13 +60,11 @@ public class QuadTree2_1Node<T>
     private float m_centerX;
     private float m_centerY;
 
-    private QuadTree2_1Node<T>[] m_nodes;
-    private QuadNodeData<T>[] m_bucket;
+    private QuadTree2_2Node<T>[] m_nodes;
+    private QuadNodeData2<T>[] m_bucket;
     private int m_bucketCount;
 
-    // bool m_bucketMode = true;
-
-    public QuadTree2_1Node (float p_bottomLeftX, float p_bottomLeftY, float p_topRightX, float p_topRightY)
+    public QuadTree2_2Node (float p_bottomLeftX, float p_bottomLeftY, float p_topRightX, float p_topRightY)
     {
         this.m_bottomLeftX = p_bottomLeftX;
         this.m_topRightX = p_topRightX;
@@ -67,24 +74,21 @@ public class QuadTree2_1Node<T>
         this.m_topRightY = p_topRightY;
         m_centerY = (p_bottomLeftY + p_topRightY) * 0.5f;
 
-        m_bucket = new QuadNodeData<T>[K_BUCKET_SIZE];
+        m_bucket = new QuadNodeData2<T>[K_BUCKET_SIZE];
         m_bucketCount = 0;
     }
 
     public void Clear()
     {
-        // m_bucketMode = true;
-
         m_bucketCount = 0;
     }
 
-    public QuadNodeData<T> Add(QuadNodeData<T> p_data)
+    public void Add(ref QuadNodeData2<T> p_data)
     {
         if (m_bucketCount <= K_BUCKET_SIZE) // Bucket mode
         {
             if (m_bucketCount == K_BUCKET_SIZE) // Spill
             {
-                // m_bucketMode = false;
                 m_bucketCount++;
 
                 if (m_nodes == null)
@@ -99,23 +103,21 @@ public class QuadTree2_1Node<T>
 
                 for (int i = K_BUCKET_SIZE - 1; i >= 0; i--)
                 {
-                    m_bucket [i] = Add (m_bucket [i]);
+                    Add (ref m_bucket [i]);
                 }
 
-                return Add (p_data);
+                Add (ref p_data);
             }
             else
             {
-                QuadNodeData<T> temp = m_bucket [m_bucketCount];
                 m_bucket [m_bucketCount++] = p_data;
-                return temp;
             }
         }
         else // Tree mode
         {
             int quadrant = GetQuadrant (p_data.m_keyx, p_data.m_keyy);
 
-            return m_nodes [quadrant].Add (p_data);
+            m_nodes [quadrant].Add (ref p_data);
         }
     }
 
@@ -123,55 +125,16 @@ public class QuadTree2_1Node<T>
     {
         if (m_bucketCount <= K_BUCKET_SIZE) // Bucket mode
         {
-            /*/
-            for (int i = 0; i < m_bucketCount; i++)
-                p_searchData.Feed (m_bucket [i]);
-            /*/
             for (int i = m_bucketCount - 1; i >= 0; i--)
-                p_searchData.Feed (m_bucket [i]);
-            /**/
+                p_searchData.Feed (ref m_bucket [i]);
         }
         else // Tree mode
         {
-            /*/
-
-            QuadTree21Node<T>[] nodes = m_nodes;
-            int quadrant = GetQuadrant (p_searchData.m_keyx, p_searchData.m_keyy);
-
-            nodes [quadrant].Search (p_searchData);
-
-            float temp = p_searchData.m_keyx - m_centerX;
-
-            int both = 0;
-
-            if ((temp * temp) < p_searchData.m_currentDistance)
-            {
-                nodes [quadrant ^ K_RIGHT].Search (p_searchData);
-
-                both = 1;
-            }
-
-            temp = p_searchData.m_keyy - m_centerY;
-            if ((temp * temp) < p_searchData.m_currentDistance)
-            {
-                nodes [quadrant ^ K_TOP].Search (p_searchData);
-
-                both++;
-            }    
-
-            if (both == 2)
-            {
-                int index = quadrant ^ (K_TOP | K_RIGHT);
-
-                nodes [index].Search (p_searchData);
-            }
-            /*/
-            // QuadTree21Node<T>[] nodes = m_nodes;
             int quadrant = GetQuadrant (p_searchData.m_keyx, p_searchData.m_keyy);
 
             m_nodes [quadrant].Search (p_searchData);
 
-            int doneX = 0;
+            bool doneX = false;
 
             float temp = p_searchData.m_keyx - m_centerX;
 
@@ -181,7 +144,7 @@ public class QuadTree2_1Node<T>
 
                 m_nodes [index].Search (p_searchData);
 
-                doneX = 1;
+                doneX = true;
             }
 
             temp = p_searchData.m_keyy - m_centerY;
@@ -191,25 +154,24 @@ public class QuadTree2_1Node<T>
 
                 m_nodes [index].Search (p_searchData);
 
-                if (doneX == 1)
+                if (doneX == true)
                 {
                     index = quadrant ^ (K_TOP | K_RIGHT);
 
                     m_nodes [index].Search (p_searchData);
                 }
             }  
-            /**/
         }
     }
 
     private void CreateChildNodes()
     {
-        m_nodes = new QuadTree2_1Node<T>[4];
+        m_nodes = new QuadTree2_2Node<T>[4];
 
-        m_nodes [0]                 = new QuadTree2_1Node<T> (m_bottomLeftX, m_bottomLeftY, m_centerX, m_centerY);
-        m_nodes [K_RIGHT]           = new QuadTree2_1Node<T> (m_centerX, m_bottomLeftY, m_topRightX, m_centerY);
-        m_nodes [K_TOP]             = new QuadTree2_1Node<T> (m_bottomLeftX, m_centerY, m_centerX, m_topRightY);
-        m_nodes [K_RIGHT + K_TOP]   = new QuadTree2_1Node<T> (m_centerX, m_centerY, m_topRightX, m_topRightY);
+        m_nodes [0]                 = new QuadTree2_2Node<T> (m_bottomLeftX, m_bottomLeftY, m_centerX, m_centerY);
+        m_nodes [K_RIGHT]           = new QuadTree2_2Node<T> (m_centerX, m_bottomLeftY, m_topRightX, m_centerY);
+        m_nodes [K_TOP]             = new QuadTree2_2Node<T> (m_bottomLeftX, m_centerY, m_centerX, m_topRightY);
+        m_nodes [K_RIGHT | K_TOP]   = new QuadTree2_2Node<T> (m_centerX, m_centerY, m_topRightX, m_topRightY);
     }
 
     private int GetQuadrant(float p_keyx, float p_keyy)

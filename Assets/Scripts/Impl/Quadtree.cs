@@ -205,7 +205,27 @@ public class SearchData<T>
         }
     }
 
+    public void Feed(ref QuadNodeData2<T> p_nodeData)
+    {
+        float distance = DistanceTo (ref p_nodeData);
+        if (distance < m_currentDistance)
+        {
+            if ((m_filter != null) && (m_filter (p_nodeData.m_value) == false))
+                return;
+
+            m_currentDistance = distance;
+            m_currentClosest = p_nodeData.m_value;
+        }
+    }
+
     private float DistanceTo(QuadNodeData<T> p_nodeData)
+    {
+        float distX = (m_keyx - p_nodeData.m_keyx);
+        float distY = (m_keyy - p_nodeData.m_keyy);
+        return distX * distX + distY * distY;
+    }
+
+    private float DistanceTo(ref QuadNodeData2<T> p_nodeData)
     {
         float distX = (m_keyx - p_nodeData.m_keyx);
         float distY = (m_keyy - p_nodeData.m_keyy);
