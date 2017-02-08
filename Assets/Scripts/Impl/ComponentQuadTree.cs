@@ -1,9 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections;
 
-// public delegate bool DQuadTreeFilter<T> (T p_parm);
-
-public class ComponentQuadtree<T> : ComponentQuadtreeNode<T> where T : Component
+public class ComponentQuadtree<T> : ComponentQuadtreeNode<T>, IQuadtree<T> where T : Component
 {
     private SearchData<T> m_searchData = new SearchData<T>();
 

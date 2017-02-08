@@ -48,7 +48,7 @@ public abstract class PointTest : MonoBehaviour
         Watch.Stop ();
     }
 
-    public string GetName()
+    public virtual string GetName()
     {
         return GetType ().Name + "(" + m_sideLength + ")";
     }
@@ -57,6 +57,7 @@ public abstract class PointTest : MonoBehaviour
     protected abstract void FeedPoint(float p_x, float p_y, Component p_value);
     protected abstract Component SearchPoint(float p_x, float p_y);
 
+    // This only exists to force the 'enabled' chackbox in the inspector
     void Start()
     {
     }

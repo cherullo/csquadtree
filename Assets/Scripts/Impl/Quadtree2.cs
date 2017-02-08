@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections;
 
-public class Quadtree2<T> : QuadTree2Node<T>
+public class Quadtree2<T> : QuadTree2Node<T>, IQuadtree<T>
 {
     private SearchData<T> m_searchData = new SearchData<T>();
 

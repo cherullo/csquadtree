@@ -3,7 +3,7 @@ using System.Collections;
 
 public delegate bool DQuadtreeFilter<T> (T p_parm);
 
-public class Quadtree<T>
+public class Quadtree<T> : IQuadtree<T>
 {
     private Node m_root;
 

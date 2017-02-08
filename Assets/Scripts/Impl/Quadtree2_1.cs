@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections;
 
-public class Quadtree2_1<T> : QuadTree2_1Node<T>
+public class Quadtree2_1<T> : QuadTree2_1Node<T>, IQuadtree<T>
 {
     private SearchData<T> m_searchData = new SearchData<T>();
 
@@ -10,12 +10,9 @@ public class Quadtree2_1<T> : QuadTree2_1Node<T>
     public Quadtree2_1 (float p_bottomLeftX, float p_bottomLeftY, float p_topRightX, float p_topRightY) : base (p_bottomLeftX, p_bottomLeftY, p_topRightX, p_topRightY)
     {
     }
-    
 
     public void Add(float p_keyx, float p_keyy, T p_value)
     {
-        // QuadNodeData<T> data = new QuadNodeData<T> (p_keyx, p_keyy, p_value);
-
         if (m_roller == null)
             m_roller = new QuadNodeData<T> (p_keyx, p_keyy, p_value);
         else
