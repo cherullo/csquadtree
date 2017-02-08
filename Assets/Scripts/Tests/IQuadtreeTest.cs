@@ -25,7 +25,7 @@ public class IQuadtreeTest : PointTest
 
     public override string GetName()
     {
-        return m_tree.GetType ().Name + "(" + m_sideLength + ")";
+        return m_tree.GetType ().Name.Replace("`1", "") + "(" + m_sideLength + ")";
     }
 
     protected void SetTypeToTest(System.Type p_type)
