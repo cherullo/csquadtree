@@ -10,6 +10,7 @@ public class RandomDeltaPointGenerator : MonoBehaviour {
     public int m_numItems = 100;
     public int m_numSearches = 200;
     public float m_sideLength = 10.0f;
+    public float m_maxDelta = 0.1f;
 
     int m_iterationCounter = 0;
     PointTest[] m_tests;
@@ -171,8 +172,8 @@ public class RandomDeltaPointGenerator : MonoBehaviour {
         {
             Vector3 pos = p_transforms [i].position;
 
-            pos.x = Mathf.Clamp (pos.x + Random.Range (-0.1f, 0.1f), 0f, p_sideLength);
-            pos.y = Mathf.Clamp (pos.y + Random.Range (-0.1f, 0.1f), 0f, p_sideLength);
+            pos.x = Mathf.Clamp (pos.x + Random.Range (-m_maxDelta, m_maxDelta), 0f, p_sideLength);
+            pos.y = Mathf.Clamp (pos.y + Random.Range (-m_maxDelta, m_maxDelta), 0f, p_sideLength);
 
             p_transforms [i].position = pos;
         
