@@ -1,20 +1,20 @@
 ﻿using UnityEngine;
 using System.Collections;
 
-public class ComponentQuadtree2<T> : ComponentQuadtreeNode2<T>, IRebuildableQuadtree<T> where T : Component
+public class ComponentQuadtree3<T> : ComponentQuadtreeNode3<T>, IRebuildableQuadtree<T> where T : Component
 {
     private SearchData<T> m_searchData = new SearchData<T>();
 
-    public ComponentQuadtree2 (float p_bottomLeftX, float p_bottomLeftY, float p_topRightX, float p_topRightY) : base (null, p_bottomLeftX, p_bottomLeftY, p_topRightX, p_topRightY)
+    public ComponentQuadtree3 (float p_bottomLeftX, float p_bottomLeftY, float p_topRightX, float p_topRightY) : base (null, p_bottomLeftX, p_bottomLeftY, p_topRightX, p_topRightY)
     {
         m_parent = null;
     }
 
     public void Add(float p_keyx, float p_keyy, T p_value)
     {
-        ComponentQuadNodeData<T> data = new ComponentQuadNodeData<T> (p_keyx, p_keyy, p_value);
+        ComponentQuadNodeData3<T> data = new ComponentQuadNodeData3<T> (p_keyx, p_keyy, p_value);
 
-        this.Add (data);
+        this.Add (ref data);
     }
 
     public SearchData<T> ClosestTo(float p_keyx, float p_keyy, DQuadtreeFilter<T> p_filter = null)
@@ -29,13 +29,13 @@ public class ComponentQuadtree2<T> : ComponentQuadtreeNode2<T>, IRebuildableQuad
     }
 }
 
-public class ComponentQuadtreeNode2<T> where T : Component
+public class ComponentQuadtreeNode3<T> where T : Component
 {
     private const int K_BUCKET_SIZE = 6;
     private const int K_RIGHT = 1;
     private const int K_TOP = 2;
 
-    protected ComponentQuadtreeNode2<T> m_parent;
+    protected ComponentQuadtreeNode3<T> m_parent;
 
     private float m_bottomLeftX;
     private float m_bottomLeftY;
@@ -45,13 +45,13 @@ public class ComponentQuadtreeNode2<T> where T : Component
     private float m_centerX;
     private float m_centerY;
 
-    private ComponentQuadtreeNode2<T>[] m_nodes;
-    private ComponentQuadNodeData<T>[] m_bucket;
     private int m_bucketCount;
+    private ComponentQuadNodeData3<T>[] m_bucket;
+    private ComponentQuadtreeNode3<T>[] m_nodes;
 
-    bool m_bucketMode = true;
+   // bool m_bucketMode = true;
 
-    public ComponentQuadtreeNode2 (ComponentQuadtreeNode2<T> p_parent, float p_bottomLeftX, float p_bottomLeftY, float p_topRightX, float p_topRightY)
+    public ComponentQuadtreeNode3 (ComponentQuadtreeNode3<T> p_parent, float p_bottomLeftX, float p_bottomLeftY, float p_topRightX, float p_topRightY)
     {
         this.m_parent = p_parent;
         this.m_bottomLeftX = p_bottomLeftX;
@@ -62,24 +62,24 @@ public class ComponentQuadtreeNode2<T> where T : Component
         m_centerX = (m_bottomLeftX + m_topRightX) * 0.5f;
         m_centerY = (m_bottomLeftY + m_topRightY) * 0.5f;
 
-        m_bucket = new ComponentQuadNodeData<T>[K_BUCKET_SIZE];
+        m_bucket = new ComponentQuadNodeData3<T>[K_BUCKET_SIZE];
         m_bucketCount = 0;
     }
 
     public void Clear()
     {
-        m_bucketMode = true;
+        // m_bucketMode = true;
 
         m_bucketCount = 0;
     }
 
-    public void Add(ComponentQuadNodeData<T> p_data)
+    public void Add(ref ComponentQuadNodeData3<T> p_data)
     {
-        if (m_bucketMode) // Bucket mode
+        if (m_bucketCount >= 0) // Bucket mode
         {
             if (m_bucketCount == K_BUCKET_SIZE) // Spill
             {
-                m_bucketMode = false;
+                m_bucketCount = -1;
 
                 if (m_nodes == null)
                     CreateChildNodes ();
@@ -91,14 +91,14 @@ public class ComponentQuadtreeNode2<T> where T : Component
                     }
                 }
 
-                ComponentQuadNodeData<T>[] temp = m_bucket;
+                ComponentQuadNodeData3<T>[] temp = m_bucket;
 
                 for (int i = 0; i < K_BUCKET_SIZE; i++)
                 {
-                    Add (temp [i]);
+                    Add (ref temp [i]);
                 }
 
-                Add (p_data);
+                Add (ref p_data);
             }
             else
             {
@@ -109,35 +109,35 @@ public class ComponentQuadtreeNode2<T> where T : Component
         {
             int quadrant = GetQuadrant (p_data.m_keyx, p_data.m_keyy);
 
-            m_nodes [quadrant].Add (p_data);
+            m_nodes [quadrant].Add (ref p_data);
         }
     }
 
     public void Search(SearchData<T> p_searchData)
     {
-        if (m_bucketMode) // Bucket mode
+        if (m_bucketCount >= 0) // Bucket mode
         {
             for (int i = 0; i < m_bucketCount; i++)
-                p_searchData.Feed (m_bucket [i]);
+                p_searchData.Feed (ref m_bucket [i]);
         }
         else // Tree mode
         {
-            ComponentQuadtreeNode2<T>[] nodes = m_nodes;
+            ComponentQuadtreeNode3<T>[] nodes = m_nodes;
             int quadrant = GetQuadrant (p_searchData.m_keyx, p_searchData.m_keyy);
 
             nodes [quadrant].Search (p_searchData);
 
-            float temp = p_searchData.m_keyx - m_centerX;
-
             int doneX = 0;
+
+            float temp = p_searchData.m_keyx - m_centerX;
 
             if ((temp * temp) < p_searchData.m_currentDistance)
             {
+                doneX = 1;
+
                 int index = quadrant ^ K_RIGHT;
 
                 nodes [index].Search (p_searchData);
-
-                doneX = 1;
             }
 
             temp = p_searchData.m_keyy - m_centerY;
@@ -159,12 +159,12 @@ public class ComponentQuadtreeNode2<T> where T : Component
 
     private void CreateChildNodes()
     {
-        m_nodes = new ComponentQuadtreeNode2<T>[4];
+        m_nodes = new ComponentQuadtreeNode3<T>[4];
 
-        m_nodes [0]                 = new ComponentQuadtreeNode2<T> (this, m_bottomLeftX, m_bottomLeftY, m_centerX, m_centerY);
-        m_nodes [K_RIGHT]           = new ComponentQuadtreeNode2<T> (this, m_centerX, m_bottomLeftY, m_topRightX, m_centerY);
-        m_nodes [K_TOP]             = new ComponentQuadtreeNode2<T> (this, m_bottomLeftX, m_centerY, m_centerX, m_topRightY);
-        m_nodes [K_RIGHT + K_TOP]   = new ComponentQuadtreeNode2<T> (this, m_centerX, m_centerY, m_topRightX, m_topRightY);
+        m_nodes [0]                 = new ComponentQuadtreeNode3<T> (this, m_bottomLeftX, m_bottomLeftY, m_centerX, m_centerY);
+        m_nodes [K_RIGHT]           = new ComponentQuadtreeNode3<T> (this, m_centerX, m_bottomLeftY, m_topRightX, m_centerY);
+        m_nodes [K_TOP]             = new ComponentQuadtreeNode3<T> (this, m_bottomLeftX, m_centerY, m_centerX, m_topRightY);
+        m_nodes [K_RIGHT + K_TOP]   = new ComponentQuadtreeNode3<T> (this, m_centerX, m_centerY, m_topRightX, m_topRightY);
     }
 
     private int GetQuadrant(float p_keyx, float p_keyy)
@@ -190,29 +190,28 @@ public class ComponentQuadtreeNode2<T> where T : Component
 
     public void Rebuild()
     {
-        if (m_bucketMode == true)
+        if (m_bucketCount >= 0)
         {
             for (int i = 0; i < m_bucketCount; i++)
             {
-                ComponentQuadNodeData<T> data = m_bucket [i];
+//                ComponentQuadNodeData3<T> data = m_bucket [i];
 
-                Vector3 pos = data.m_transform.position;
+                Vector3 pos = m_bucket [i].m_transform.position;
 
-                data.m_keyx = pos.x;
-                data.m_keyy = pos.y;
+                m_bucket [i].m_keyx = pos.x;
+                m_bucket [i].m_keyy = pos.y;
 
                 if (IsInside (pos.x, pos.y) == true)
                     continue;
-
-                m_bucket [i--] = m_bucket [--m_bucketCount];
+                
                 // m_bucket [m_bucketCount] = null;
 
-                ComponentQuadtreeNode2<T> temp = m_parent;
+                ComponentQuadtreeNode3<T> temp = m_parent;
                 while (temp != null)
                 {
                     if (temp.IsInside (pos.x, pos.y))
                     {
-                        temp.Add (data);
+                        temp.Add (ref m_bucket [i]);
                         break;
                     }
                     else
@@ -220,6 +219,8 @@ public class ComponentQuadtreeNode2<T> where T : Component
                         temp = temp.m_parent;
                     }
                 }
+
+                m_bucket [i--] = m_bucket [--m_bucketCount];
             }
         }
         else
@@ -232,13 +233,19 @@ public class ComponentQuadtreeNode2<T> where T : Component
     }
 }
 
+public struct ComponentQuadNodeData3<T> // where T : Component
+{
+    public Transform m_transform;
+    public float m_keyx;
+    public float m_keyy;
+    public T m_value;
 
-//public class ComponentQuadNodeData<T> : QuadNodeData<T> where T : Component
-//{
-//    public Transform m_transform;
-//
-//    public ComponentQuadNodeData (float p_keyx, float p_keyy, T p_value) : base(p_keyx, p_keyy, p_value)
-//    {
-//        m_transform = p_value.transform;
-//    }
-//}
+    public ComponentQuadNodeData3 (float p_keyx, float p_keyy, T  p_value)
+    {
+        m_value = p_value;
+        m_transform = (p_value as Component).transform;
+
+        m_keyx = p_keyx;
+        m_keyy = p_keyy;
+    }
+}

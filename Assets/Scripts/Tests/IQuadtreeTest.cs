@@ -35,19 +35,67 @@ public class IQuadtreeTest : PointTest
         m_tree = CreateInstance (p_type, context);
     }
 
-    protected override void ClearTree ()
+    public override Component[] RunTest (Vector2[] p_points, Component[] p_values, Vector2[] p_searches)
     {
-        m_tree.Clear ();
+        IRebuildableQuadtree<Component> rebuildableTree = m_tree as IRebuildableQuadtree<Component>;
+
+        if (rebuildableTree != null)
+            return RunTest (rebuildableTree, p_points, p_values, p_searches);
+        else
+            return RunTest (m_tree, p_points, p_values, p_searches);
     }
 
-    protected override void FeedPoint (float p_x, float p_y, Component p_value)
+    private Component[] RunTest (IRebuildableQuadtree<Component> p_tree, Vector2[] p_points, Component[] p_values, Vector2[] p_searches)
     {
-        m_tree.Add(p_x, p_y, p_value);
+        if ((m_results == null) || (m_results.Length != p_searches.Length))
+        {
+            // First time
+            m_results = new Component[p_searches.Length];
+
+            p_tree.Clear ();
+
+            for (int i = 0; i < p_points.Length; i++)
+            {
+                p_tree.Add(p_points [i].x, p_points [i].y, p_values[i]);
+            }
+        }
+
+        Watch.Start ();
+
+        p_tree.Rebuild ();
+
+        for (int i = 0; i < p_points.Length; i++)
+        {
+            m_results [i] =  p_tree.ClosestTo (p_points [i].x, p_points [i].y).m_currentClosest;
+        }
+
+        Watch.Stop ();
+
+        return m_results;
     }
 
-    protected override Component SearchPoint (float p_x, float p_y)
+    private Component[] RunTest (IQuadtree<Component> p_tree, Vector2[] p_points, Component[] p_values, Vector2[] p_searches)
     {
-        return m_tree.ClosestTo (p_x, p_y).m_currentClosest;
+        if ((m_results == null) || (m_results.Length != p_searches.Length))
+            m_results = new Component[p_searches.Length];
+
+        Watch.Start ();
+
+        p_tree.Clear ();
+
+        for (int i = 0; i < p_points.Length; i++)
+        {
+            p_tree.Add(p_points [i].x, p_points [i].y, p_values[i]);
+        }
+
+        for (int i = 0; i < p_points.Length; i++)
+        {
+            m_results [i] =  p_tree.ClosestTo (p_points [i].x, p_points [i].y).m_currentClosest;
+        }
+
+        Watch.Stop ();
+
+        return m_results;
     }
 
     protected Dictionary<string, object> BuildConstructorContext (float p_sideLength)

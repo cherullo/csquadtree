@@ -26,15 +26,7 @@ public class BruteForceTest : PointTest
         return m_results;
     }
 
-    protected override void ClearTree ()
-    {
-    }
-
-    protected override void FeedPoint (float p_x, float p_y, Component p_value)
-    {
-    }
-
-    protected override Component SearchPoint (float p_x, float p_y)
+    protected Component SearchPoint (float p_x, float p_y)
     {
         int retIndex = 0;
         float minDistance = Mathf.Infinity;
