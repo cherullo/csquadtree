@@ -1,20 +1,21 @@
 ﻿using UnityEngine;
 using System.Collections;
 
-public delegate bool DQuadtreeFilter<T> (T p_parm);
+namespace Impl.Qt1
+{
 
 public class Quadtree<T> : IQuadtree<T>
 {
     private Node m_root;
 
-    private SearchData<T> m_searchData = new SearchData<T>();
+    private SearchData<T> m_searchData = new SearchData<T> ();
 
-    public void Clear()
+    public void Clear ()
     {
         m_root = null;
     }
 
-    public void Add(float p_keyx, float p_keyy, T p_value)
+    public void Add (float p_keyx, float p_keyy, T p_value)
     {
         QuadNodeData<T> data = new QuadNodeData<T> (p_keyx, p_keyy, p_value);
 
@@ -28,7 +29,7 @@ public class Quadtree<T> : IQuadtree<T>
         }
     }
 
-    public SearchData<T> ClosestTo(float p_keyx, float p_keyy, DQuadtreeFilter<T> p_filter = null)
+    public ISearchResult<T> ClosestTo (float p_keyx, float p_keyy, DQuadtreeFilter<T> p_filter = null)
     {
         m_searchData.SetData (p_keyx, p_keyy, p_filter);
 
@@ -41,7 +42,7 @@ public class Quadtree<T> : IQuadtree<T>
 
         return m_searchData;
     }
-	
+
     private class Node
     {
         private const int K_BUCKET_SIZE = 4;
@@ -55,7 +56,7 @@ public class Quadtree<T> : IQuadtree<T>
         private QuadNodeData<T>[] m_bucket;
         private int m_bucketCount;
 
-        public Node(QuadNodeData<T> p_data)
+        public Node (QuadNodeData<T> p_data)
         {
             m_data = p_data;
 
@@ -63,7 +64,7 @@ public class Quadtree<T> : IQuadtree<T>
             m_bucketCount = 0;
         }
 
-        public void Add(QuadNodeData<T> p_data)
+        public void Add (QuadNodeData<T> p_data)
         {
             if (m_bucket != null) // Bucket mode
             {
@@ -91,7 +92,7 @@ public class Quadtree<T> : IQuadtree<T>
 
                 if (targetNode == null)
                 {
-                    m_nodes [quadrant] = new Node(p_data);
+                    m_nodes [quadrant] = new Node (p_data);
                 }
                 else
                 {
@@ -100,7 +101,7 @@ public class Quadtree<T> : IQuadtree<T>
             }
         }
 
-        public void Search(SearchData<T> p_searchData)
+        public void Search (SearchData<T> p_searchData)
         {
             p_searchData.Feed (m_data);
 
@@ -140,7 +141,7 @@ public class Quadtree<T> : IQuadtree<T>
             }
         }
 
-        private int GetQuadrant(float p_keyx, float p_keyy)
+        private int GetQuadrant (float p_keyx, float p_keyy)
         {
             int ret = 0;
             QuadNodeData<T> data = m_data;
@@ -148,7 +149,7 @@ public class Quadtree<T> : IQuadtree<T>
             if (p_keyx > data.m_keyx)
                 ret += K_RIGHT;
 
-            if (p_keyy > data.m_keyy) 
+            if (p_keyy > data.m_keyy)
                 ret += K_TOP;
 
             return ret;
@@ -170,7 +171,7 @@ public class QuadNodeData<T>
     }
 }
 
-public class SearchData<T>
+public class SearchData<T> : ISearchResult<T>
 {
     public float m_keyx;
     public float m_keyy;
@@ -182,7 +183,17 @@ public class SearchData<T>
     {
     }
 
-    public void SetData(float m_keyx, float m_keyy, DQuadtreeFilter<T> p_filter = null)
+    public T GetResult ()
+    {
+        return m_currentClosest;
+    }
+
+    public float GetDistance ()
+    {
+        return m_currentDistance;
+    }
+
+    public void SetData (float m_keyx, float m_keyy, DQuadtreeFilter<T> p_filter = null)
     {
         this.m_keyx = m_keyx;
         this.m_keyy = m_keyy;
@@ -192,7 +203,7 @@ public class SearchData<T>
         this.m_currentDistance = Mathf.Infinity;
     }
 
-    public void Feed(QuadNodeData<T> p_nodeData)
+    public void Feed (QuadNodeData<T> p_nodeData)
     {
         float distance = DistanceTo (p_nodeData);
         if (distance < m_currentDistance)
@@ -205,50 +216,13 @@ public class SearchData<T>
         }
     }
 
-    public void Feed(ref QuadNodeData2<T> p_nodeData)
-    {
-        float distance = DistanceTo (ref p_nodeData);
-        if (distance < m_currentDistance)
-        {
-            if ((m_filter != null) && (m_filter (p_nodeData.m_value) == false))
-                return;
 
-            m_currentDistance = distance;
-            m_currentClosest = p_nodeData.m_value;
-        }
-    }
-
-    public void Feed(ref ComponentQuadNodeData3<T> p_nodeData)
-    {
-        float distance = DistanceTo (ref p_nodeData);
-        if (distance < m_currentDistance)
-        {
-            if ((m_filter != null) && (m_filter (p_nodeData.m_value) == false))
-                return;
-
-            m_currentDistance = distance;
-            m_currentClosest = p_nodeData.m_value;
-        }
-    }
-
-    private float DistanceTo(QuadNodeData<T> p_nodeData)
+    private float DistanceTo (QuadNodeData<T> p_nodeData)
     {
         float distX = (m_keyx - p_nodeData.m_keyx);
         float distY = (m_keyy - p_nodeData.m_keyy);
         return distX * distX + distY * distY;
     }
 
-    private float DistanceTo(ref QuadNodeData2<T> p_nodeData)
-    {
-        float distX = (m_keyx - p_nodeData.m_keyx);
-        float distY = (m_keyy - p_nodeData.m_keyy);
-        return distX * distX + distY * distY;
-    }
-
-    private float DistanceTo(ref ComponentQuadNodeData3<T> p_nodeData)
-    {
-        float distX = (m_keyx - p_nodeData.m_keyx);
-        float distY = (m_keyy - p_nodeData.m_keyy);
-        return distX * distX + distY * distY;
-    }
+}
 }

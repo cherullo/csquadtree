@@ -1,6 +1,9 @@
 ﻿using UnityEngine;
 using System.Collections;
 
+namespace Impl.Qt22
+{
+
 public struct QuadNodeData2<T>
 {
     public float m_keyx;
@@ -34,7 +37,7 @@ public class Quadtree2_2<T> : QuadTree2_2Node<T>, IQuadtree<T>
         this.Add (ref m_roller);
     }
 
-    public SearchData<T> ClosestTo(float p_keyx, float p_keyy, DQuadtreeFilter<T> p_filter = null)
+    public ISearchResult<T> ClosestTo(float p_keyx, float p_keyy, DQuadtreeFilter<T> p_filter = null)
     {
         m_searchData.SetData (p_keyx, p_keyy, p_filter);
 
@@ -186,4 +189,59 @@ public class QuadTree2_2Node<T>
 
         return ret;
     }
+}
+
+public class SearchData<T> : ISearchResult<T>
+{
+    public float m_keyx;
+    public float m_keyy;
+    public T m_currentClosest;
+    public float m_currentDistance;
+    public DQuadtreeFilter<T> m_filter;
+
+    public SearchData ()
+    {
+    }
+
+    public T GetResult ()
+    {
+        return m_currentClosest;
+    }
+
+    public float GetDistance ()
+    {
+        return m_currentDistance;
+    }
+
+    public void SetData (float m_keyx, float m_keyy, DQuadtreeFilter<T> p_filter = null)
+    {
+        this.m_keyx = m_keyx;
+        this.m_keyy = m_keyy;
+        this.m_filter = p_filter;
+
+        this.m_currentClosest = default(T);
+        this.m_currentDistance = Mathf.Infinity;
+    }
+
+    public void Feed (ref QuadNodeData2<T> p_nodeData)
+    {
+        float distance = DistanceTo (ref p_nodeData);
+        if (distance < m_currentDistance)
+        {
+            if ((m_filter != null) && (m_filter (p_nodeData.m_value) == false))
+                return;
+
+            m_currentDistance = distance;
+            m_currentClosest = p_nodeData.m_value;
+        }
+    }
+
+    private float DistanceTo (ref QuadNodeData2<T> p_nodeData)
+    {
+        float distX = (m_keyx - p_nodeData.m_keyx);
+        float distY = (m_keyy - p_nodeData.m_keyy);
+        return distX * distX + distY * distY;
+    }
+
+}
 }

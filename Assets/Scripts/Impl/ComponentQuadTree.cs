@@ -1,9 +1,12 @@
 ﻿using UnityEngine;
 using System.Collections;
 
+namespace Impl.CQt1
+{
+
 public class ComponentQuadtree<T> : ComponentQuadtreeNode<T>, IQuadtree<T> where T : Component
 {
-    private SearchData<T> m_searchData = new SearchData<T>();
+    private SearchData<T> m_searchData = new SearchData<T> ();
 
     public ComponentQuadtree (float p_bottomLeftX, float p_bottomLeftY, float p_topRightX, float p_topRightY) : base (null, p_bottomLeftX, p_bottomLeftY, p_topRightX, p_topRightY)
     {
@@ -11,14 +14,14 @@ public class ComponentQuadtree<T> : ComponentQuadtreeNode<T>, IQuadtree<T> where
     }
 
 
-    public void Add(float p_keyx, float p_keyy, T p_value)
+    public void Add (float p_keyx, float p_keyy, T p_value)
     {
         ComponentQuadNodeData<T> data = new ComponentQuadNodeData<T> (p_keyx, p_keyy, p_value);
 
         this.Add (data);
     }
 
-    public SearchData<T> ClosestTo(float p_keyx, float p_keyy, DQuadtreeFilter<T> p_filter = null)
+    public ISearchResult<T> ClosestTo (float p_keyx, float p_keyy, DQuadtreeFilter<T> p_filter = null)
     {
         m_searchData.SetData (p_keyx, p_keyy, p_filter);
 
@@ -67,14 +70,14 @@ public class ComponentQuadtreeNode<T> where T : Component
         m_bucketCount = 0;
     }
 
-    public void Clear()
+    public void Clear ()
     {
         m_bucketMode = true;
 
         m_bucketCount = 0;
     }
 
-    public void Add(ComponentQuadNodeData<T> p_data)
+    public void Add (ComponentQuadNodeData<T> p_data)
     {
         if (m_bucketMode) // Bucket mode
         {
@@ -114,7 +117,7 @@ public class ComponentQuadtreeNode<T> where T : Component
         }
     }
 
-    public void Search(SearchData<T> p_searchData)
+    public void Search (SearchData<T> p_searchData)
     {
         if (m_bucketMode) // Bucket mode
         {
@@ -160,30 +163,30 @@ public class ComponentQuadtreeNode<T> where T : Component
         }
     }
 
-    private void CreateChildNodes()
+    private void CreateChildNodes ()
     {
         m_nodes = new ComponentQuadtreeNode<T>[4];
 
-        m_nodes [0]                 = new ComponentQuadtreeNode<T> (m_root, m_bottomLeftX, m_bottomLeftY, m_centerX, m_centerY);
-        m_nodes [K_RIGHT]           = new ComponentQuadtreeNode<T> (m_root, m_centerX, m_bottomLeftY, m_topRightX, m_centerY);
-        m_nodes [K_TOP]             = new ComponentQuadtreeNode<T> (m_root, m_bottomLeftX, m_centerY, m_centerX, m_topRightY);
-        m_nodes [K_RIGHT + K_TOP]   = new ComponentQuadtreeNode<T> (m_root, m_centerX, m_centerY, m_topRightX, m_topRightY);
+        m_nodes [0] = new ComponentQuadtreeNode<T> (m_root, m_bottomLeftX, m_bottomLeftY, m_centerX, m_centerY);
+        m_nodes [K_RIGHT] = new ComponentQuadtreeNode<T> (m_root, m_centerX, m_bottomLeftY, m_topRightX, m_centerY);
+        m_nodes [K_TOP] = new ComponentQuadtreeNode<T> (m_root, m_bottomLeftX, m_centerY, m_centerX, m_topRightY);
+        m_nodes [K_RIGHT + K_TOP] = new ComponentQuadtreeNode<T> (m_root, m_centerX, m_centerY, m_topRightX, m_topRightY);
     }
 
-    private int GetQuadrant(float p_keyx, float p_keyy)
+    private int GetQuadrant (float p_keyx, float p_keyy)
     {
         int ret = 0;
 
         if (p_keyx > m_centerX)
             ret += K_RIGHT;
 
-        if (p_keyy > m_centerY) 
+        if (p_keyy > m_centerY)
             ret += K_TOP;
 
         return ret;
     }
 
-    public bool IsInside(float p_x, float p_y)
+    public bool IsInside (float p_x, float p_y)
     {
         return (
             (m_bottomLeftX <= p_x) && (p_x <= m_topRightX) &&
@@ -191,7 +194,7 @@ public class ComponentQuadtreeNode<T> where T : Component
         );
     }
 
-    public void Rebuild()
+    public void Rebuild ()
     {
         if (m_bucketMode == true)
         {
@@ -223,13 +226,86 @@ public class ComponentQuadtreeNode<T> where T : Component
     }
 }
 
+public class QuadNodeData<T>
+{
+    public float m_keyx;
+    public float m_keyy;
+    public T m_value;
+
+    public QuadNodeData (float p_keyx, float p_keyy, T p_value)
+    {
+        this.m_keyx = p_keyx;
+        this.m_keyy = p_keyy;
+        this.m_value = p_value;
+    }
+}
 
 public class ComponentQuadNodeData<T> : QuadNodeData<T> where T : Component
 {
     public Transform m_transform;
 
-    public ComponentQuadNodeData (float p_keyx, float p_keyy, T p_value) : base(p_keyx, p_keyy, p_value)
+    public ComponentQuadNodeData (float p_keyx, float p_keyy, T p_value) : base (p_keyx, p_keyy, p_value)
     {
         m_transform = p_value.transform;
     }
+
+}
+
+
+public class SearchData<T> : ISearchResult<T>
+{
+    public float m_keyx;
+    public float m_keyy;
+    public T m_currentClosest;
+    public float m_currentDistance;
+    public DQuadtreeFilter<T> m_filter;
+
+    public SearchData ()
+    {
+    }
+
+    public T GetResult ()
+    {
+        return m_currentClosest;
+    }
+
+    public float GetDistance ()
+    {
+        return m_currentDistance;
+    }
+
+    public void SetData (float m_keyx, float m_keyy, DQuadtreeFilter<T> p_filter = null)
+    {
+        this.m_keyx = m_keyx;
+        this.m_keyy = m_keyy;
+        this.m_filter = p_filter;
+
+        this.m_currentClosest = default(T);
+        this.m_currentDistance = Mathf.Infinity;
+    }
+
+    public void Feed (QuadNodeData<T> p_nodeData)
+    {
+        float distance = DistanceTo (p_nodeData);
+        if (distance < m_currentDistance)
+        {
+            if ((m_filter != null) && (m_filter (p_nodeData.m_value) == false))
+                return;
+
+            m_currentDistance = distance;
+            m_currentClosest = p_nodeData.m_value;
+        }
+    }
+
+    private float DistanceTo (QuadNodeData<T> p_nodeData)
+    {
+        float distX = (m_keyx - p_nodeData.m_keyx);
+        float distY = (m_keyy - p_nodeData.m_keyy);
+        return distX * distX + distY * distY;
+    }
+        
+   
+}
+
+
 }

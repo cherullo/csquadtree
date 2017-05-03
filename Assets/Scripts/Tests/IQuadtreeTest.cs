@@ -4,6 +4,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Text;
+using System.Text.RegularExpressions;
 
 public class IQuadtreeTest : PointTest
 {
@@ -13,7 +14,10 @@ public class IQuadtreeTest : PointTest
 
     public void Awake()
     {
-        System.Type t = System.Type.GetType (m_implementation.name + "`1");
+        string className = _GetTreeClassName (m_implementation) + "`1";
+        Debug.Log (className);
+
+        System.Type t = System.Type.GetType( className );
 
         // TODO: Check type implements IQuadtree<Component>
 
@@ -26,6 +30,41 @@ public class IQuadtreeTest : PointTest
     public override string GetName()
     {
         return m_tree.GetType ().Name.Replace("`1", "") + "(" + m_sideLength + ")";
+    }
+
+    protected string _GetTreeClassName(TextAsset p_treeFile)
+    {
+        string _namespace = null;
+        string _classname = null;
+
+        string[] lines = p_treeFile.text.Split ('\n');
+
+        Regex namespaceRegex = new Regex (@"(namespace)\s+([\w\.]+)");
+        Regex classnameRegex = new Regex (@"(class)\s+(\w+)");
+
+        for (int i = 0; i < lines.Length; i++)
+        {
+            string line = lines [i];
+
+            Match nsm = namespaceRegex.Match (line);
+            if (nsm.Success == true)
+            {
+                _namespace = nsm.Groups[2].Captures [0].Value;
+            }
+            else
+            {
+                Match cnm = classnameRegex.Match (line);
+                if (cnm.Success == true)
+                {
+                    _classname = cnm.Groups[2].Captures [0].Value;
+                }
+            }
+
+            if ((_namespace != null) && (_classname != null))
+                return _namespace + "." + _classname;
+        }
+
+        return null;
     }
 
     protected void SetTypeToTest(System.Type p_type)
@@ -66,7 +105,7 @@ public class IQuadtreeTest : PointTest
 
         for (int i = 0; i < p_points.Length; i++)
         {
-            m_results [i] =  p_tree.ClosestTo (p_points [i].x, p_points [i].y).m_currentClosest;
+            m_results [i] =  p_tree.ClosestTo (p_points [i].x, p_points [i].y).GetResult();
         }
 
         Watch.Stop ();
@@ -90,7 +129,7 @@ public class IQuadtreeTest : PointTest
 
         for (int i = 0; i < p_points.Length; i++)
         {
-            m_results [i] =  p_tree.ClosestTo (p_points [i].x, p_points [i].y).m_currentClosest;
+            m_results [i] =  p_tree.ClosestTo (p_points [i].x, p_points [i].y).GetResult();
         }
 
         Watch.Stop ();

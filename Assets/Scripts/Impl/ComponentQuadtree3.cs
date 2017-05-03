@@ -1,6 +1,9 @@
 ﻿using UnityEngine;
 using System.Collections;
 
+namespace Impl.CQt3
+{
+
 public class ComponentQuadtree3<T> : ComponentQuadtreeNode3<T>, IRebuildableQuadtree<T> where T : Component
 {
     private SearchData<T> m_searchData = new SearchData<T>();
@@ -17,7 +20,7 @@ public class ComponentQuadtree3<T> : ComponentQuadtreeNode3<T>, IRebuildableQuad
         this.Add (ref data);
     }
 
-    public SearchData<T> ClosestTo(float p_keyx, float p_keyy, DQuadtreeFilter<T> p_filter = null)
+    public ISearchResult<T> ClosestTo(float p_keyx, float p_keyy, DQuadtreeFilter<T> p_filter = null)
     {
         m_searchData.SetData (p_keyx, p_keyy, p_filter);
 
@@ -233,6 +236,96 @@ public class ComponentQuadtreeNode3<T> where T : Component
     }
 }
 
+public class QuadNodeData<T>
+{
+    public float m_keyx;
+    public float m_keyy;
+    public T m_value;
+
+    public QuadNodeData (float p_keyx, float p_keyy, T p_value)
+    {
+        this.m_keyx = p_keyx;
+        this.m_keyy = p_keyy;
+        this.m_value = p_value;
+    }
+}
+
+public class SearchData<T> : ISearchResult<T>
+{
+    public float m_keyx;
+    public float m_keyy;
+    public T m_currentClosest;
+    public float m_currentDistance;
+    public DQuadtreeFilter<T> m_filter;
+
+    public SearchData ()
+    {
+    }
+
+    public T GetResult ()
+    {
+        return m_currentClosest;
+    }
+
+    public float GetDistance ()
+    {
+        return m_currentDistance;
+    }
+
+    public void SetData (float m_keyx, float m_keyy, DQuadtreeFilter<T> p_filter = null)
+    {
+        this.m_keyx = m_keyx;
+        this.m_keyy = m_keyy;
+        this.m_filter = p_filter;
+
+        this.m_currentClosest = default(T);
+        this.m_currentDistance = Mathf.Infinity;
+    }
+
+    public void Feed (QuadNodeData<T> p_nodeData)
+    {
+        float distance = DistanceTo (p_nodeData);
+        if (distance < m_currentDistance)
+        {
+            if ((m_filter != null) && (m_filter (p_nodeData.m_value) == false))
+                return;
+
+            m_currentDistance = distance;
+            m_currentClosest = p_nodeData.m_value;
+        }
+    }
+
+
+    public void Feed (ref ComponentQuadNodeData3<T> p_nodeData)
+    {
+        float distance = DistanceTo (ref p_nodeData);
+        if (distance < m_currentDistance)
+        {
+            if ((m_filter != null) && (m_filter (p_nodeData.m_value) == false))
+                return;
+
+            m_currentDistance = distance;
+            m_currentClosest = p_nodeData.m_value;
+        }
+    }
+
+    private float DistanceTo (QuadNodeData<T> p_nodeData)
+    {
+        float distX = (m_keyx - p_nodeData.m_keyx);
+        float distY = (m_keyy - p_nodeData.m_keyy);
+        return distX * distX + distY * distY;
+    }
+
+
+    private float DistanceTo (ref ComponentQuadNodeData3<T> p_nodeData)
+    {
+        float distX = (m_keyx - p_nodeData.m_keyx);
+        float distY = (m_keyy - p_nodeData.m_keyy);
+        return distX * distX + distY * distY;
+    }
+}
+
+
 public struct ComponentQuadNodeData3<T> // where T : Component
 {
     public Transform m_transform;
@@ -248,4 +341,6 @@ public struct ComponentQuadNodeData3<T> // where T : Component
         m_keyx = p_keyx;
         m_keyy = p_keyy;
     }
+}
+
 }
