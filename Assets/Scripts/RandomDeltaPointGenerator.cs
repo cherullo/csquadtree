@@ -18,6 +18,9 @@ public class RandomDeltaPointGenerator : MonoBehaviour {
 
     void Awake()
     {
+        if (enabled == false)
+            return;
+
         m_tests = GetTests (m_reference);
 
         SetSideLength (m_tests, m_sideLength);

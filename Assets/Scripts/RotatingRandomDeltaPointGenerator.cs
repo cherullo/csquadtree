@@ -11,8 +11,6 @@ public class RotatingRandomDeltaPointGenerator : RandomDeltaPointGenerator
 
     Vector2[] m_boxedPositions;
 
-
-
 	protected override float GetEffectiveSideLength (float p_sideLength)
     {
         m_rotationPivot = Vector2.one * (m_radius + 0.5f * p_sideLength);
