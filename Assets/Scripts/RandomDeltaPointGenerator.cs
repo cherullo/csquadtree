@@ -67,9 +67,11 @@ public class RandomDeltaPointGenerator : MonoBehaviour {
 
     private void SetSideLength(PointTest[] p_tests, float p_sideLength)
     {
+        float effectiveSideLength = GetEffectiveSideLength (p_sideLength);
+
         foreach (PointTest pt in p_tests)
         {
-            pt.SetSideLength (p_sideLength);
+            pt.SetSideLength (effectiveSideLength);
         }
     }
 
@@ -164,7 +166,19 @@ public class RandomDeltaPointGenerator : MonoBehaviour {
         return -1;
     }
 
-    private Vector2[] RandomizeTransformPositions(Transform[] p_transforms, float p_sideLength)
+    private void PaintBadResult (Component p_expected, Component p_result)
+    {
+        p_expected.GetComponent<Renderer>().material.color = Color.blue;
+
+        p_result.GetComponent<Renderer>().material.color = Color.red;
+    }
+
+    protected virtual float GetEffectiveSideLength(float p_sideLength)
+    {
+        return p_sideLength;
+    }
+
+    protected virtual Vector2[] RandomizeTransformPositions(Transform[] p_transforms, float p_sideLength)
     {
         Vector2[] ret = new Vector2[p_transforms.Length];
 
@@ -184,14 +198,7 @@ public class RandomDeltaPointGenerator : MonoBehaviour {
         return ret;
     }
 
-    private void PaintBadResult (Component p_expected, Component p_result)
-    {
-        p_expected.GetComponent<Renderer>().material.color = Color.blue;
-
-        p_result.GetComponent<Renderer>().material.color = Color.red;
-    }
-
-    private Vector2[] BuildRandomPositions(int p_numPoints, float p_sideLength)
+    protected virtual Vector2[] BuildRandomPositions(int p_numPoints, float p_sideLength)
     {
         Vector2[] positions = new Vector2[p_numPoints];
 
