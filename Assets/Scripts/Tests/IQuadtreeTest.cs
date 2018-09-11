@@ -12,7 +12,7 @@ public class IQuadtreeTest : PointTest
 
     private IQuadtree<Component> m_tree;
 
-    public void Awake()
+    public void Start()
     {
         string className = _GetTreeClassName (m_implementation) + "`1";
         Debug.Log (className);
