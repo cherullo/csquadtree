@@ -288,6 +288,9 @@ namespace Impl.CQt5
                 m_nodes[1].Rebuild();
                 m_nodes[2].Rebuild();
                 m_nodes[3].Rebuild();
+
+                if (m_childCount == 0)
+                    Clear();
             }
         }
     }

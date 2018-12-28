@@ -12,6 +12,9 @@ public class Benchmark : MonoBehaviour
     public int m_numSearches = 200;
     public float m_sideLength = 10.0f;
 
+    [SerializeField]
+    private int _iterationsToSkip = 10;
+
     private int m_iterationCounter = 0;
     private IPointTest[] _tests;
     private ResultsAggregator[] _aggregators;
@@ -71,7 +74,8 @@ public class Benchmark : MonoBehaviour
             if (referenceResult != null)
                 CheckResult(referenceResult, _tests[i], testResult);
             
-            _aggregators[i].FeedResult(testResult);
+            if (m_iterationCounter > _iterationsToSkip)
+                _aggregators[i].FeedResult(testResult);
         }
 
         PrintResults (m_iterationCounter, _aggregators);
