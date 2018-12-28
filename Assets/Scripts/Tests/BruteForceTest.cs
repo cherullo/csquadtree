@@ -1,29 +1,41 @@
 ﻿using UnityEngine;
+using System.Diagnostics;
 using System.Collections;
 
-public class BruteForceTest : PointTest 
+public class BruteForceTest : MonoBehaviour, IPointTest
 {
     private Vector2[] m_points;
     private Component[] m_values;
+    private Component[] _results;
 
-    public override Component[] RunTest(Vector2[] p_points, Component[] p_values, Vector2[] p_searches)
+    public RunResult RunTest(Vector2[] p_points, Component[] p_values, Vector2[] searches)
     {
-        if ((m_results == null) || (m_results.Length != p_searches.Length))
-            m_results = new Component[p_searches.Length];
+        if ((_results == null) || (_results.Length != searches.Length))
+            _results = new Component[searches.Length];
 
-        Watch.Start ();
+        Stopwatch watch = new Stopwatch();
+        watch.Start ();
 
         m_points = p_points;
         m_values = p_values;
 
         for (int i = 0; i < p_points.Length; i++)
         {
-            m_results [i] = this.SearchPoint (p_points [i].x, p_points [i].y);
+            _results [i] = this.SearchPoint (p_points [i].x, p_points [i].y);
         }
 
-        Watch.Stop ();
+        watch.Stop ();
 
-        return m_results;
+        return new RunResult(_results, watch.Elapsed.TotalMilliseconds);
+    }
+
+    public string GetName()
+    {
+        return gameObject.name + "." + GetType().FullName;
+    }
+
+    public void Initialize(float sideLength)
+    {
     }
 
     protected Component SearchPoint (float p_x, float p_y)

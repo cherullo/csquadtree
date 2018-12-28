@@ -2,20 +2,26 @@
 using UnityEditor;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
 
-public class IQuadtreeTest : PointTest
+public class IQuadtreeTest : MonoBehaviour, IPointTest
 {
     public TextAsset m_implementation;
 
     private IQuadtree<Component> m_tree;
 
-    public void Start()
+    private float _sideLength;
+    private Component[] _results;
+
+    public void Initialize(float sideLength)
     {
+        _sideLength = sideLength;
+
         string className = _GetTreeClassName (m_implementation) + "`1";
-        Debug.Log (className);
+        UnityEngine.Debug.Log (className);
 
         System.Type t = System.Type.GetType( className );
 
@@ -24,12 +30,12 @@ public class IQuadtreeTest : PointTest
         System.Type tg = t.MakeGenericType (typeof(Component));
 
         if (tg != null)
-            SetTypeToTest (tg);
+            m_tree = _CreateTestType (tg, sideLength);
     }
 
-    public override string GetName()
+    public string GetName()
     {
-        return m_tree.GetType ().Name.Replace("`1", "") + "(" + m_sideLength + ")";
+        return m_implementation.name.Replace("`1", "") + "(" + _sideLength + ")";
     }
 
     protected string _GetTreeClassName(TextAsset p_treeFile)
@@ -67,29 +73,38 @@ public class IQuadtreeTest : PointTest
         return null;
     }
 
-    protected void SetTypeToTest(System.Type p_type)
+    private IQuadtree<Component> _CreateTestType(System.Type p_type, float sideLength)
     {
-        Dictionary<string, object> context = BuildConstructorContext (m_sideLength);
+        Dictionary<string, object> context = BuildConstructorContext (sideLength);
 
-        m_tree = CreateInstance (p_type, context);
+        return CreateInstance (p_type, context);
     }
 
-    public override Component[] RunTest (Vector2[] p_points, Component[] p_values, Vector2[] p_searches)
+    public RunResult RunTest (Vector2[] p_points, Component[] p_values, Vector2[] p_searches)
     {
         IRebuildableQuadtree<Component> rebuildableTree = m_tree as IRebuildableQuadtree<Component>;
+        
+        Component[] result;
+        Stopwatch watch = new Stopwatch();
+
+        watch.Start();
 
         if (rebuildableTree != null)
-            return RunTest (rebuildableTree, p_points, p_values, p_searches);
+            result = RunTest (rebuildableTree, p_points, p_values, p_searches);
         else
-            return RunTest (m_tree, p_points, p_values, p_searches);
+            result = RunTest (m_tree, p_points, p_values, p_searches);
+
+        watch.Stop();
+
+        return new RunResult(result, watch.Elapsed.TotalMilliseconds);
     }
 
     private Component[] RunTest (IRebuildableQuadtree<Component> p_tree, Vector2[] p_points, Component[] p_values, Vector2[] p_searches)
     {
-        if ((m_results == null) || (m_results.Length != p_searches.Length))
+        if ((_results == null) || (_results.Length != p_searches.Length))
         {
             // First time
-            m_results = new Component[p_searches.Length];
+            _results = new Component[p_searches.Length];
 
             p_tree.Clear ();
 
@@ -99,26 +114,20 @@ public class IQuadtreeTest : PointTest
             }
         }
 
-        Watch.Start ();
-
         p_tree.Rebuild ();
 
         for (int i = 0; i < p_points.Length; i++)
         {
-            m_results [i] =  p_tree.ClosestTo (p_points [i].x, p_points [i].y).GetResult();
+            _results [i] =  p_tree.ClosestTo (p_points [i].x, p_points [i].y).GetResult();
         }
-
-        Watch.Stop ();
-
-        return m_results;
+        
+        return _results;
     }
 
     private Component[] RunTest (IQuadtree<Component> p_tree, Vector2[] p_points, Component[] p_values, Vector2[] p_searches)
     {
-        if ((m_results == null) || (m_results.Length != p_searches.Length))
-            m_results = new Component[p_searches.Length];
-
-        Watch.Start ();
+        if ((_results == null) || (_results.Length != p_searches.Length))
+            _results = new Component[p_searches.Length];
 
         p_tree.Clear ();
 
@@ -129,12 +138,10 @@ public class IQuadtreeTest : PointTest
 
         for (int i = 0; i < p_points.Length; i++)
         {
-            m_results [i] =  p_tree.ClosestTo (p_points [i].x, p_points [i].y).GetResult();
+            _results [i] =  p_tree.ClosestTo (p_points [i].x, p_points [i].y).GetResult();
         }
 
-        Watch.Stop ();
-
-        return m_results;
+        return _results;
     }
 
     protected Dictionary<string, object> BuildConstructorContext (float p_sideLength)
@@ -156,7 +163,7 @@ public class IQuadtreeTest : PointTest
 
         if (constructor == null)
         {
-            Debug.LogError("Could not find a constructor for type '" + p_classType.Name + "' with parameter names contained in (" + DictionaryKeysToString(p_context) + ")");
+            UnityEngine.Debug.LogError("Could not find a constructor for type '" + p_classType.Name + "' with parameter names contained in (" + DictionaryKeysToString(p_context) + ")");
         }
 
         return InvokeConstructor (constructor, p_context);
@@ -211,7 +218,7 @@ public class IQuadtreeTest : PointTest
         {
             if (p_context.ContainsKey (pi.Name) == false)
             {
-                Debug.Log ("Parameter " + pi.Name + " not found in context");
+                UnityEngine.Debug.Log ("Parameter " + pi.Name + " not found in context");
 
                 return false;
             }

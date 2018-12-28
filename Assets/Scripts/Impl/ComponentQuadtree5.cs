@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System;
+using UnityEngine;
 using System.Collections;
 
 namespace Impl.CQt5
@@ -226,6 +227,9 @@ namespace Impl.CQt5
 
         private int GetQuadrant(float p_keyx, float p_keyy)
         {
+            /**/
+            return (Math.Sign(p_keyx - m_centerX) & 0x1) | ((Math.Sign(p_keyy - m_centerY) & 0x1) << 1);
+            /*/
             int ret = 0;
 
             if (p_keyx > m_centerX)
@@ -235,6 +239,7 @@ namespace Impl.CQt5
                 ret |= K_TOP;
 
             return ret;
+            /**/
         }
 
         public bool IsInside(float p_x, float p_y)

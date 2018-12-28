@@ -7,43 +7,17 @@ public class RotatingRandomDeltaPointGenerator : RandomDeltaPointGenerator
 
     private Vector2 m_rotationPivot;
 
-    Vector2[] m_boxedPositions;
 
-	protected override float GetEffectiveSideLength (float p_sideLength)
+	public override float GetEffectiveSideLength (float sideLength)
     {
-        m_rotationPivot = Vector2.one * (m_radius + 0.5f * p_sideLength);
+        m_rotationPivot = Vector2.one * (m_radius + 0.5f * sideLength);
 
-        return m_sideLength + 2.0f * m_radius;
+        return sideLength + 2.0f * m_radius;
     }
 
-    protected override Vector2[] RandomizeTransformPositions (Transform[] p_transforms, float p_sideLength)
+    public override Vector2[] GetPositions(int count, float sideLength)
     {
-        if (m_boxedPositions == null)
-        {
-            m_boxedPositions = base.BuildRandomPositions (p_transforms.Length, p_sideLength);
-        }
-
-        Vector2 rotationCenter = GetRotationCenter (m_rotationPivot, m_radius);
-        Vector2 delta = rotationCenter - (0.5f * m_sideLength) * Vector2.one;
-
-        Vector2[] ret = new Vector2[p_transforms.Length];
-
-        for (int i = 0; i < p_transforms.Length; i++)
-        {
-            m_boxedPositions[i].x = Mathf.Clamp (m_boxedPositions[i].x + Random.Range (-m_maxDelta, m_maxDelta), 0f, p_sideLength);
-            m_boxedPositions[i].y = Mathf.Clamp (m_boxedPositions[i].y + Random.Range (-m_maxDelta, m_maxDelta), 0f, p_sideLength);
-
-            ret[i] = m_boxedPositions[i] + delta;
-
-            p_transforms [i].position = ret [i];
-        }
-
-        return ret;
-    }
-
-    protected override Vector2[] BuildRandomPositions (int p_numPoints, float p_sideLength)
-    {
-        Vector2[] positions = base.BuildRandomPositions (p_numPoints, p_sideLength);
+        Vector2[] positions = base.GetPositions (count, sideLength);
 
         return Add (positions, GetRotationCenter (m_rotationPivot, m_radius));
     }

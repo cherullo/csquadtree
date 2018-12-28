@@ -2,6 +2,14 @@
 using System.Diagnostics;
 using System.Collections;
 
+public interface IPointTest
+{
+    void Initialize(float sideLength);
+    string GetName();
+
+    RunResult RunTest (Vector2[] p_points, Component[] p_values, Vector2[] p_searches);
+}
+
 public abstract class PointTest : MonoBehaviour
 {
     public float m_sideLengthMultiplier = 1.0f;
