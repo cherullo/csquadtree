@@ -227,7 +227,7 @@ namespace Impl.CQt5
 
         private int GetQuadrant(float p_keyx, float p_keyy)
         {
-            /**/
+            /*/
             return (Math.Sign(p_keyx - m_centerX) & 0x1) | ((Math.Sign(p_keyy - m_centerY) & 0x1) << 1);
             /*/
             int ret = 0;
@@ -264,10 +264,10 @@ namespace Impl.CQt5
 
                 //if (m_nodes != null)
                 {
-                    m_nodes[0].Clear();
-                    m_nodes[1].Clear();
-                    m_nodes[2].Clear();
-                    m_nodes[3].Clear();
+                    m_nodes[0].Rebuild();
+                    m_nodes[1].Rebuild();
+                    m_nodes[2].Rebuild();
+                    m_nodes[3].Rebuild();
                 }
             }
         

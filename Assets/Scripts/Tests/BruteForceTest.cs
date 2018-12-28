@@ -19,9 +19,9 @@ public class BruteForceTest : MonoBehaviour, IPointTest
         m_points = p_points;
         m_values = p_values;
 
-        for (int i = 0; i < p_points.Length; i++)
+        for (int i = 0; i < searches.Length; i++)
         {
-            _results [i] = this.SearchPoint (p_points [i].x, p_points [i].y);
+            _results [i] = this.SearchPoint (searches [i].x, searches [i].y);
         }
 
         watch.Stop ();

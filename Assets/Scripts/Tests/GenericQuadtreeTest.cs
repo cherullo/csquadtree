@@ -7,7 +7,7 @@ using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
 
-public class IQuadtreeTest : MonoBehaviour, IPointTest
+public class GenericQuadtreeTest : MonoBehaviour, IPointTest
 {
     public TextAsset m_implementation;
 
@@ -116,9 +116,9 @@ public class IQuadtreeTest : MonoBehaviour, IPointTest
 
         p_tree.Rebuild ();
 
-        for (int i = 0; i < p_points.Length; i++)
+        for (int i = 0; i < p_searches.Length; i++)
         {
-            _results [i] =  p_tree.ClosestTo (p_points [i].x, p_points [i].y).GetResult();
+            _results [i] =  p_tree.ClosestTo (p_searches [i].x, p_searches [i].y).GetResult();
         }
         
         return _results;
@@ -136,9 +136,9 @@ public class IQuadtreeTest : MonoBehaviour, IPointTest
             p_tree.Add(p_points [i].x, p_points [i].y, p_values[i]);
         }
 
-        for (int i = 0; i < p_points.Length; i++)
+        for (int i = 0; i < p_searches.Length; i++)
         {
-            _results [i] =  p_tree.ClosestTo (p_points [i].x, p_points [i].y).GetResult();
+            _results [i] =  p_tree.ClosestTo (p_searches [i].x, p_searches [i].y).GetResult();
         }
 
         return _results;

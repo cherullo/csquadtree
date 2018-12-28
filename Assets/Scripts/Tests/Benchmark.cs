@@ -200,9 +200,11 @@ public class Benchmark : MonoBehaviour
 
     private void PaintBadResult (Component p_expected, Component p_result)
     {
-        p_expected.GetComponent<Renderer>().material.color = Color.blue;
+        if (p_expected != null)
+            p_expected.GetComponent<Renderer>().material.color = Color.blue;
 
-        p_result.GetComponent<Renderer>().material.color = Color.red;
+        if (p_result != null)
+            p_result.GetComponent<Renderer>().material.color = Color.red;
     }
 
     
