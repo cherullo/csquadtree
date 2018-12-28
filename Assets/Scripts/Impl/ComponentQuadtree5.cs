@@ -249,14 +249,6 @@ namespace Impl.CQt5
             {
                 return;
             }
-
-            if (m_bucketCount == -1) // tree mode
-            {
-                m_nodes[0].Rebuild();
-                m_nodes[1].Rebuild();
-                m_nodes[2].Rebuild();
-                m_nodes[3].Rebuild();
-            }
         
             if (m_bucketCount >= 0)
             {
@@ -358,7 +350,6 @@ namespace Impl.CQt5
                 m_currentClosest = p_nodeData.m_value;
             }
         }
-
 
         public void Feed(ref ComponentQuadNodeData<T> p_nodeData)
         {
