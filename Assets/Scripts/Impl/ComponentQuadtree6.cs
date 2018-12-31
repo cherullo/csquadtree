@@ -16,24 +16,8 @@ namespace Impl.CQt6
         // public ComponentQuadtreeNode<T> m_firstDecisionPoint;
         private ComponentQuadtreeNode<T>[] _allNodes;
 
-        // private float m_bottomLeftX;
-        // private float m_bottomLeftY;
-        // private float m_topRightX;
-        // private float m_topRightY;
-
-        // private float m_centerX;
-        // private float m_centerY;
-
         public ComponentQuadtree6(float p_bottomLeftX, float p_bottomLeftY, float p_topRightX, float p_topRightY) 
         {
-            // m_bottomLeftX = p_bottomLeftX;
-            // m_bottomLeftY = p_bottomLeftY;
-            // m_topRightX = p_topRightX;
-            // m_topRightY = p_topRightY;
-
-            // m_centerX = (m_bottomLeftX + m_topRightX) * 0.5f;
-            // m_centerY = (m_bottomLeftY + m_topRightY) * 0.5f;
-
             int allNodeCount = _CalculateAllNodeCount(_maxDepth);
 
             _allNodes = new ComponentQuadtreeNode<T>[allNodeCount];
@@ -43,15 +27,15 @@ namespace Impl.CQt6
 
         private void _InitializeNode(int nodeIndex, float p_bottomLeftX, float p_bottomLeftY, float p_topRightX, float p_topRightY)
         {
-            _allNodes[nodeIndex].Init(p_bottomLeftX, p_bottomLeftY, p_topRightX, p_topRightY);
+            float centerX = (p_bottomLeftX + p_topRightX) * 0.5f;
+            float centerY = (p_bottomLeftY + p_topRightY) * 0.5f;
+
+            _allNodes[nodeIndex].Init(centerX, centerY);
 
             int bottomLeftChild = (nodeIndex * 4) + 1;
 
             if (bottomLeftChild >= _allNodes.Length)
                 return;
-
-            float centerX = (p_bottomLeftX + p_topRightX) * 0.5f;
-            float centerY = (p_bottomLeftY + p_topRightY) * 0.5f;
 
             _InitializeNode(bottomLeftChild, p_bottomLeftX, p_bottomLeftY, centerX, centerY);
             _InitializeNode(bottomLeftChild + K_RIGHT, centerX, p_bottomLeftY, p_topRightX, centerY);
@@ -89,11 +73,11 @@ namespace Impl.CQt6
         {
             int bottomLeftChild = (4 * node) + 1;
 
-            if (_allNodes[node].m_bucketCount >= 0) // Bucket mode
+            if (_allNodes[node].m_childCount <= K_BUCKET_SIZE) // Bucket mode
             {
-                if ((_allNodes[node].m_bucketCount == K_BUCKET_SIZE) && (bottomLeftChild < _allNodes.Length)) // Spill
+                if ((_allNodes[node].m_childCount == K_BUCKET_SIZE) && (bottomLeftChild < _allNodes.Length)) // Spill
                 {
-                    _allNodes[node].m_bucketCount = -1;
+                    // _allNodes[node].m_childCount = -1;
                     
                     // Clear child nodes, if we are not at maxDepth
                     _allNodes[bottomLeftChild].Clear();
@@ -103,7 +87,7 @@ namespace Impl.CQt6
                     
                     ComponentQuadNodeData<T>[] temp = _allNodes[node].m_bucket;
 
-                    _allNodes[node].m_childCount -= K_BUCKET_SIZE;
+                    _allNodes[node].m_childCount++;    
 
                     for (int i = 0; i < K_BUCKET_SIZE; i++)
                     {
@@ -111,11 +95,12 @@ namespace Impl.CQt6
                     }
 
                     Add(node, ref p_data);
+
+                    _allNodes[node].m_childCount -= K_BUCKET_SIZE + 1;
                 }
                 else
                 {
-                    _allNodes[node].m_childCount++;
-                    _allNodes[node].m_bucket[_allNodes[node].m_bucketCount++] = p_data;
+                    _allNodes[node].m_bucket[ _allNodes[node].m_childCount++ ] = p_data;
                 }
             }
             else // Tree mode
@@ -152,9 +137,9 @@ namespace Impl.CQt6
 
         public void Search(int node, SearchData<T> p_searchData)
         {
-            if (_allNodes[node].m_bucketCount >= 0) // Bucket mode
+            if (_allNodes[node].m_childCount <= K_BUCKET_SIZE) // Bucket mode
             {
-                for (int i = 0; i < _allNodes[node].m_bucketCount; i++)
+                for (int i = 0; i < _allNodes[node].m_childCount; i++)
                     p_searchData.Feed(ref _allNodes[node].m_bucket[i]);
             }
             else // Tree mode
@@ -230,37 +215,23 @@ namespace Impl.CQt6
         private const int K_TOP = 2;
         private const int K_BUCKET_SIZE = 6;
 
-        private float m_bottomLeftX;
-        private float m_bottomLeftY;
-        private float m_topRightX;
-        private float m_topRightY;
-
         public float m_centerX;
         public float m_centerY;
 
-        public int m_bucketCount;
         public ComponentQuadNodeData<T>[] m_bucket;
         public int m_childCount;
 
-        public void Init(float p_bottomLeftX, float p_bottomLeftY, float p_topRightX, float p_topRightY)
+        public void Init(float centerX, float centerY)
         {
-            this.m_bottomLeftX = p_bottomLeftX;
-            this.m_bottomLeftY = p_bottomLeftY;
-            this.m_topRightX = p_topRightX;
-            this.m_topRightY = p_topRightY;
-
-            m_centerX = (m_bottomLeftX + m_topRightX) * 0.5f;
-            m_centerY = (m_bottomLeftY + m_topRightY) * 0.5f;
+            m_centerX = centerX;
+            m_centerY = centerY;
 
             m_bucket = new ComponentQuadNodeData<T>[K_BUCKET_SIZE];
-            m_bucketCount = 0;
             m_childCount = 0;
         }
 
         public void Clear()
         {
-            m_bucketCount = 0;
-
             m_childCount = 0;
         }
 
